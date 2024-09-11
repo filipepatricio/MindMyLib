@@ -1,14 +1,9 @@
+import Combine
 @testable import MindMyLib
 import XCTest
 
 final class MindMyLibTests: XCTestCase {
-    func testExample() throws {
-        // XCTest Documentation
-        // https://developer.apple.com/documentation/xctest
-
-        // Defining Test Cases and Test Methods
-        // https://developer.apple.com/documentation/xctest/defining_test_cases_and_test_methods
-
+    func testGetOrganizationDataSuccessfully() throws {
         let mockData = """
                 [
                     {
@@ -29,8 +24,9 @@ final class MindMyLibTests: XCTestCase {
         """
         let mockNetworkManager = MockNetworkManager(mockData: mockData)
         let apiService = ApiService(networkManager: mockNetworkManager)
+        var cancellables = Set<AnyCancellable>()
 
-        apiService.getOrganizations()
+        try apiService.getOrganizations()
             .sink { completion in
                 switch completion {
                 case .finished:
@@ -39,7 +35,9 @@ final class MindMyLibTests: XCTestCase {
                     print(error.localizedDescription)
                 }
             } receiveValue: { data in
-                XCTAssertEqual(data.toString(), mockData)
+                let dataString = String(decoding: data, as: UTF8.self)
+                XCTAssertEqual(dataString, mockData)
             }
+            .store(in: &cancellables)
     }
 }
